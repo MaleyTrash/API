@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -22,26 +24,24 @@ namespace API
     /// </summary>
     public partial class MainWindow : Window
     {
+        ObservableCollection<Person> persons = new ObservableCollection<Person>();
         public MainWindow()
         {
             InitializeComponent();
-            Get();
+            Get("get_persons.php");
+            //PersonsList.ItemsSource = persons;
         }
-        public async void Get()
+        public async void Get(string url)
         {
-            // Vytvoření klienta
             HttpClient client = new HttpClient();
-            // Odeslání dotazu na API + pamaretr pro výpis z kategorie dev
-            var response = await client.GetAsync("https://www.reddit.com/r/memes.json");
-            // Získání odpovědi v Json
-            string json = await response.Content.ReadAsStringAsync();
-            // Deserializace na dynamic objekt
-            dynamic c = JsonConvert.DeserializeObject(json);
-            // Vypsání z Dynamic
-            string meme = c.data.children[5].data.url;
-            System.IO.File.WriteAllText("path.txt", meme);
 
-            MemImage.Source = new BitmapImage(new Uri(meme));
+            var response = await client.GetAsync("https://student.sps-prosek.cz/~vancaja15/api/"+url);
+
+            string json = await response.Content.ReadAsStringAsync();
+
+            Response<Person> resObj = JsonConvert.DeserializeObject<Response<Person>>(json);
+
+            PersonsList.ItemsSource = resObj.data;
         }
     }
 }
