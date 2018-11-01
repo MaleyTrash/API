@@ -29,6 +29,7 @@ namespace API
         {
             InitializeComponent();
             Get("get_persons.php");
+           
             //PersonsList.ItemsSource = persons;
         }
         public async void Get(string url)
@@ -42,6 +43,35 @@ namespace API
             Response<Person> resObj = JsonConvert.DeserializeObject<Response<Person>>(json);
 
             PersonsList.ItemsSource = resObj.data;
+        }
+        public async void PostPerson(string url, Person person)
+        {
+            var client = new HttpClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://student.sps-prosek.cz/~vancaja15/api/"+url);
+
+            // Data, která se přidají k POST dotazu -> klíč je typu string a data jsou typu string
+
+            var keyValues = new List<KeyValuePair<string, string>>();
+
+            keyValues.Add(new KeyValuePair<string, string>("first_name", person.first_name));
+            keyValues.Add(new KeyValuePair<string, string>("last_name", person.last_name));
+            keyValues.Add(new KeyValuePair<string, string>("note", person.note));
+
+            // Přidání dat do dotazu
+            request.Content = new FormUrlEncodedContent(keyValues);
+            // Zaslání POST dotazu
+            var response = await client.SendAsync(request);
+            // Získání odpovědi
+            string json = await response.Content.ReadAsStringAsync();
+
+            Response<Person> resObj = JsonConvert.DeserializeObject<Response<Person>>(json);
+        }
+
+        private void Evidovat(object sender, RoutedEventArgs e)
+        {
+            Person person = new Person(FirstName.Text, LastName.Text, Note.Text);
+            PostPerson("add_person.php", person);
         }
     }
 }
